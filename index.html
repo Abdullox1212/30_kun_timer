@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30-Kunlik Countdown Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .timer {
+            background: #fff;
+            /* padding: 20px; */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes rainbow {
+            0% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: green; }
+            57% { color: blue; }
+            71% { color: indigo; }
+            85% { color: violet; }
+            100% { color: red; }
+        }
+        
+        .rainbow-text {
+            /* font-size: 48px; */
+            animation: rainbow 25s infinite;
+        }
+        .timer h1 {
+            /* background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); */
+            font-size: 200px;
+            margin: 0;
+        }
+        .timer p {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 200px;
+
+        }
+        .start {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .stop {
+            background-color: #f44336;
+            color: white;
+        }
+        .reset {
+            background-color: #007BFF;
+            color: white;
+        }
+        .buttons{
+            position: absolute;
+            bottom: 210px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer">
+        <h1 id="countdown" class="rainbow-text">30d 0h 0m 0s</h1>
+        <!-- <p class="rainbow-text">Siz buni uddalaysiz 🔥😍</p> -->
+        <div class="buttons">
+        <button id="startButton" class="button start">Start</button>
+        <button id="stopButton" class="button stop" disabled>Stop</button>
+        <button id="resetButton" class="button reset">Reset</button>
+    </div>
+    </div>
+
+    <script>
+        const totalTime = 30 * 24 * 60 * 60 * 1000; // 30 kun
+        let timerInterval;
+        let timeLeft = totalTime;
+        let endTime;
+
+        function getEndTime() {
+            const storedEndTime = localStorage.getItem('endTime');
+            return storedEndTime ? parseInt(storedEndTime) : null;
+        }
+
+        function saveEndTime() {
+            endTime = Date.now() + timeLeft;
+            localStorage.setItem('endTime', endTime);
+        }
+
+        function updateCountdown() {
+            const now = Date.now();
+            timeLeft = endTime - now;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById("countdown").innerText = "Vaqt tugadi!";
+                localStorage.removeItem('endTime'); // Taymer tugagach vaqtni o'chirib tashlaymiz
+                return;
+            }
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById("countdown").innerText = `${days}:${hours}:${minutes}:${seconds}`;
+        }
+
+        function startTimer() {
+            endTime = getEndTime();
+            if (!endTime) {
+                saveEndTime(); // End time ni saqlash
+                endTime = getEndTime();
+            }
+            timerInterval = setInterval(updateCountdown, 1000);
+            document.getElementById("startButton").disabled = true;
+            document.getElementById("stopButton").disabled = false;
+            updateCountdown(); // Taymerni yangilash
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timeLeft = endTime - Date.now(); // Qolgan vaqtni saqlash
+            localStorage.setItem('timeLeft', timeLeft); // Qolgan vaqtni saqlash
+            document.getElementById("startButton").disabled = false;
+            document.getElementById("stopButton").disabled = true;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            localStorage.removeItem('endTime'); // End time ni o'chirish
+            timeLeft = totalTime; // Taymerni boshlang'ich qiymatga qaytarish
+            document.getElementById("countdown").innerText = "30 Kun 0h 0m 0s"; // Boshlang'ich qiymat
+            document.getElementById("startButton").disabled = false;
+            document.getElementById("stopButton").disabled = true;
+        }
+
+        document.getElementById("startButton").addEventListener("click", startTimer);
+        document.getElementById("stopButton").addEventListener("click", stopTimer);
+        document.getElementById("resetButton").addEventListener("click", resetTimer);
+
+        // Sahifa yuklanganda vaqtni yangilash
+        endTime = getEndTime();
+        if (endTime) {
+            timerInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+    </script>
+</body>
+</html>
